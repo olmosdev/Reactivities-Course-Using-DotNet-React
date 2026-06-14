@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import agent from "../api/agent";
 
-export const useActivities = () => {
+export const useActivities = (id?: string) => {
   const queryClient = useQueryClient();
 
   const { data: activities, isPending } = useQuery({
@@ -10,6 +10,19 @@ export const useActivities = () => {
       const response = await agent.get<Activity[]>("/activities");
       return response.data;
     },
+  });
+
+  const { data: activity, isLoading: isLoadingActivity } = useQuery({
+    queryKey: ["activities", id],
+    queryFn: async () => {
+      const response = await agent.get<Activity>(`/activities/${id}`);
+      return response.data;
+    },
+    /*
+    In React, yes, all the code in the custom hook is executed from top to bottom every time the component 
+    using it re-renders. For that reason, we only enable this function if there is an ID in the URL.
+    */
+    enabled: !!id,
   });
 
   const updateActivity = useMutation({
@@ -26,7 +39,8 @@ export const useActivities = () => {
 
   const createActivity = useMutation({
     mutationFn: async (activity: Activity) => {
-      await agent.post("/activities", activity);
+      const response = await agent.post("/activities", activity);
+      return response.data;
     },
     onSuccess: async () => {
       // To invalidate the activities query
@@ -54,5 +68,7 @@ export const useActivities = () => {
     updateActivity,
     createActivity,
     deleteActivity,
+    activity,
+    isLoadingActivity,
   };
 };

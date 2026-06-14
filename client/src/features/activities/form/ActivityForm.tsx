@@ -1,17 +1,13 @@
 import { Box, Paper, Typography, TextField, Button } from "@mui/material";
 import type { FormEvent } from "react";
 import { useActivities } from "../../../lib/hooks/useActivities";
+import { useNavigate, useParams } from "react-router";
 
-type ActivityFormProps = {
-  activity?: Activity;
-  closeForm: () => void;
-};
-
-export default function ActivityForm({
-  activity,
-  closeForm,
-}: ActivityFormProps) {
-  const { updateActivity, createActivity } = useActivities();
+export default function ActivityForm() {
+  const { id } = useParams();
+  const { updateActivity, createActivity, activity, isLoadingActivity } =
+    useActivities(id);
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,17 +22,22 @@ export default function ActivityForm({
     if (activity) {
       data.id = activity.id;
       await updateActivity.mutateAsync(data as unknown as Activity);
-      closeForm();
+      navigate(`/activities/${activity.id}`);
     } else {
-      await createActivity.mutateAsync(data as unknown as Activity);
-      closeForm();
+      createActivity.mutate(data as unknown as Activity, {
+        onSuccess: (id) => {
+          navigate(`/activities/${id}`);
+        },
+      });
     }
   };
+
+  if (isLoadingActivity) return <Typography>Loading activity...</Typography>;
 
   return (
     <Paper sx={{ borderRadius: 3, padding: 3 }}>
       <Typography variant="h5" gutterBottom color="primary">
-        Create activity
+        {activity ? "Edit Activity" : "Create Activity"}
       </Typography>
       <Box
         component="form"
@@ -89,7 +90,16 @@ export default function ActivityForm({
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", gap: 3, pt: 1 }}
         >
-          <Button onClick={closeForm} color="inherit">
+          <Button
+            color="inherit"
+            onClick={() => {
+              if (id) {
+                navigate(`/activities/${id}`);
+              } else {
+                navigate("/activities");
+              }
+            }}
+          >
             Cancel
           </Button>
           <Button

@@ -6,16 +6,13 @@ import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import Box from "@mui/material/Box";
 import { useActivities } from "../../../lib/hooks/useActivities";
+import { Link } from "react-router";
 
 type ActivityCardProps = {
   activity: Activity;
-  selectActivity: (id: string) => void;
 };
 
-export default function ActivityCard({
-  activity,
-  selectActivity,
-}: ActivityCardProps) {
+export default function ActivityCard({ activity }: ActivityCardProps) {
   const { deleteActivity } = useActivities();
 
   return (
@@ -38,7 +35,8 @@ export default function ActivityCard({
         <Chip label={activity.category} variant="outlined" />
         <Box display="flex" gap={3}>
           <Button
-            onClick={() => selectActivity(activity.id)}
+            component={Link}
+            to={`/activities/${activity.id}`}
             size="medium"
             variant="contained"
           >
